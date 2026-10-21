@@ -1,0 +1,88 @@
+{
+  "name": "Assistente de Investimentos - RPA & n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Clientes",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e3e7f4c0-4221-4d33-a3b1-8728d11c91cb",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "clientes-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clientes = $input.first().json.body?.clientes || [];\n\nconst recomendacoes = {\n  \"Conservador\": \"Tesouro Selic ou CDB Liquidez Diária (foco em segurança e liquidez)\",\n  \"Moderado\": \"Tesouro IPCA+ ou CDB Prefixado (equilíbrio entre risco e proteção contra inflação)\",\n  \"Arrojado\": \"Ações ETF ou Fundo de Ações (maior potencial de valorização a longo prazo)\"\n};\n\nconst resultados = clientes.map(c => {\n  const rec = recomendacoes[c.perfil] || \"Diversificação Geral\";\n  return {\n    nome: c.nome,\n    email: c.email,\n    saldo: c.saldo,\n    perfil: c.perfil,\n    recomendacao: rec,\n    mensagem: `Olá ${c.nome}! Com base no seu perfil ${c.perfil} e saldo de ${c.saldo}, sua recomendação personalizada é: ${rec}.`\n  };\n});\n\nreturn [{ json: { status: \"sucesso\", total_clientes: resultados.length, clientes_processados: resultados } }];"
+      },
+      "id": "8f2a1b9c-5d3e-4f1a-9b8c-7e6d5a4b3c2d",
+      "name": "Cruzar Dados e Gerar Mensagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "1b9c8f2a-4f1a-5d3e-7e6d-9b8c5a4b3c2d",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Cruzar Dados e Gerar Mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cruzar Dados e Gerar Mensagens": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dio-assistente-investimentos"
+  },
+  "id": "assistente-investimentos-dio",
+  "tags": []
+}
